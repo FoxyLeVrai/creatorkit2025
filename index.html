@@ -22,17 +22,28 @@
       justify-content: center;
       min-height: 100vh;
       padding: 40px 20px;
-      overflow: hidden;
+    }
+
+    .card {
+      background: #1e1e1e;
+      border: 1px solid #2c2c2c;
+      border-radius: 24px;
+      padding: 40px 30px;
+      box-shadow: 0 0 40px rgba(255, 255, 255, 0.05);
+      max-width: 500px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeInUp 1s ease-out forwards;
     }
 
     h1 {
       font-size: 3rem;
       font-weight: 700;
       text-align: center;
-      margin-bottom: 60px;
-      background: linear-gradient(90deg, #b0f5a7, #7fe09d);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      margin-bottom: 40px;
+      color: #ffffff;
       animation: bounceIn 1s ease-out forwards;
     }
 
@@ -50,10 +61,8 @@
     .button-container {
       display: flex;
       flex-direction: column;
-      gap: 25px;
+      gap: 20px;
       width: 100%;
-      max-width: 400px;
-      animation: fadeInUp 1s ease-out forwards;
     }
 
     @keyframes fadeInUp {
@@ -76,24 +85,25 @@
 
     button {
       position: relative;
-      padding: 18px 22px;
+      padding: 16px 20px;
       border: none;
-      border-radius: 16px;
-      font-size: 16px;
+      border-radius: 14px;
+      font-size: 15px;
       font-weight: 600;
       color: #ffffff;
-      background: #1e1e1e;
+      background: #2a2a2a;
       backdrop-filter: blur(10px);
-      box-shadow: 0 10px 30px rgba(144, 238, 144, 0.1);
+      box-shadow: 0 10px 30px rgba(255, 255, 255, 0.05);
       cursor: pointer;
       overflow: hidden;
       transition: all 0.3s ease-in-out;
-      transform: scale(0.98);
     }
 
-    button:hover {
+    button:hover,
+    button:focus,
+    button:active {
       transform: scale(1.05);
-      box-shadow: 0 15px 40px rgba(144, 238, 144, 0.4);
+      box-shadow: 0 0 30px rgba(176, 245, 167, 0.3);
     }
 
     button::before {
@@ -101,14 +111,17 @@
       position: absolute;
       top: 0; left: 0;
       width: 100%; height: 100%;
-      background: linear-gradient(120deg, #b0f5a7, #7fe09d);
-      opacity: 0.12;
-      z-index: 0;
+      background: rgba(176, 245, 167, 0.15);
+      opacity: 0;
       transition: opacity 0.3s ease;
+      border-radius: 14px;
+      z-index: 0;
     }
 
-    button:hover::before {
-      opacity: 0.3;
+    button:hover::before,
+    button:focus::before,
+    button:active::before {
+      opacity: 1;
     }
 
     button span {
@@ -116,11 +129,13 @@
       z-index: 1;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
+      font-size: 16px;
+      letter-spacing: 0.02em;
     }
 
     footer {
-      margin-top: 80px;
+      margin-top: 60px;
       text-align: center;
       font-size: 14px;
       color: #8f8f8f;
@@ -131,28 +146,39 @@
       h1 {
         font-size: 2.2rem;
       }
-      .button-container {
-        max-width: 100%;
+      .card {
+        padding: 30px 20px;
       }
     }
   </style>
 </head>
 <body>
-  <h1 id="title">Creator Kit</h1>
+  <div class="card">
+    <h1 id="title">Creator Kit</h1>
 
-  <div class="button-container">
-    <button onclick="openPage('1.html')">
-      <span>🖼️ Visualisation de miniature YouTube</span>
-    </button>
-    <button onclick="openPage('2.html')">
-      <span>📊 Analyse</span>
-    </button>
-    <button onclick="openPage('3.html')">
-      <span>✅ Checklist</span>
-    </button>
-    <button onclick="openPage('4.html')">
-      <span>📝 To Do List</span>
-    </button>
+    <div class="button-container">
+      <button onclick="openPage('1.html')">
+        <span>🖼️ Visualisation de miniature YouTube</span>
+      </button>
+      <button onclick="openPage('2.html')">
+        <span>📊 Analyse</span>
+      </button>
+      <button onclick="openPage('3.html')">
+        <span>✅ Checklist</span>
+      </button>
+      <button onclick="openPage('4.html')">
+        <span>📝 To Do List</span>
+      </button>
+      <button onclick="openPage('5.html')">
+        <span>🗒️ Bloc-notes</span>
+      </button>
+      <button onclick="openPage('6.html')">
+        <span>🎯 Tableau d’objectifs</span>
+      </button>
+      <button onclick="openPage('7.html')">
+        <span>🎥 Vidéo Checklist</span>
+      </button>
+    </div>
   </div>
 
   <footer>

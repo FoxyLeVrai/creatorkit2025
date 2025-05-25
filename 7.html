@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>YouTube Creator Kit – Video-Checklist</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 40px 20px;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      background-color: #2a2a2a;
+      color: white;
+      font-size: 1.1em;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      background: #34a853;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #2c8a3a;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 40px;
+      background-color: #1e1e1e;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #333;
+      vertical-align: middle;
+    }
+
+    th {
+      background-color: #272727;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    input[type="checkbox"] {
+      transform: scale(1.3);
+      cursor: pointer;
+      accent-color: #34a853;
+    }
+
+    .checked-label {
+      text-decoration: line-through;
+      color: #888;
+    }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      color: #f66;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+      font-weight: bold;
+      user-select: none;
+      transition: color 0.2s ease;
+    }
+    .delete-btn:hover {
+      color: #ff0000;
+    }
+  </style>
+</head>
+<body>
+  <h1>YouTube Creator Kit – Video-Checklist</h1>
+
+  <div class="input-group">
+    <input type="text" id="videoTitle" placeholder="Titre de la vidéo..." maxlength="100" />
+    <button id="addVideoBtn">Ajouter la vidéo</button>
+  </div>
+
+  <table id="videosTable" style="display:none;">
+    <thead>
+      <tr>
+        <th>Titre</th>
+        <th>Script</th>
+        <th>Tournage</th>
+        <th>Montage</th>
+        <th>Miniature</th>
+        <th>Posté</th>
+        <th>Supprimer</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const STORAGE_KEY = 'videosChecklistData';
+    const maxVideos = 20;
+    const steps = ['script', 'shoot', 'edit', 'thumb', 'posted'];
+
+    function loadVideos() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    }
+
+    function saveVideos(videos) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(videos));
+    }
+
+    function createCheckbox(videoIndex, stepKey, checked) {
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = checked;
+      checkbox.addEventListener('change', () => {
+        let videos = loadVideos();
+        videos[videoIndex][stepKey] = checkbox.checked;
+        saveVideos(videos);
+        renderTable();
+      });
+      return checkbox;
+    }
+
+    function renderTable() {
+      const videos = loadVideos();
+      const tbody = document.querySelector('#videosTable tbody');
+      tbody.innerHTML = '';
+
+      if (videos.length === 0) {
+        document.getElementById('videosTable').style.display = 'none';
+        return;
+      } else {
+        document.getElementById('videosTable').style.display = 'table';
+      }
+
+      videos.forEach((video, i) => {
+        const tr = document.createElement('tr');
+
+        // Title cell
+        const titleTd = document.createElement('td');
+        titleTd.textContent = video.title;
+        tr.appendChild(titleTd);
+
+        // Step checkboxes cells
+        steps.forEach(step => {
+          const td = document.createElement('td');
+          const checkbox = createCheckbox(i, step, video[step]);
+          td.appendChild(checkbox);
+          if (video[step]) {
+            td.classList.add('checked-label');
+          }
+          tr.appendChild(td);
+        });
+
+        // Delete button cell
+        const delTd = document.createElement('td');
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '✖';
+        delBtn.className = 'delete-btn';
+        delBtn.title = 'Supprimer cette vidéo';
+        delBtn.addEventListener('click', () => {
+          // Supprimer la vidéo dans le tableau et le localStorage
+          let videos = loadVideos();
+          videos.splice(i, 1);
+          saveVideos(videos);
+          // Supprimer la ligne du tableau (rendre invisible)
+          tr.remove();
+          // Si plus aucune vidéo, cacher le tableau
+          if (videos.length === 0) {
+            document.getElementById('videosTable').style.display = 'none';
+          }
+        });
+        delTd.appendChild(delBtn);
+        tr.appendChild(delTd);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function addVideo() {
+      const input = document.getElementById('videoTitle');
+      const title = input.value.trim();
+      if (!title) {
+        alert('Veuillez entrer un titre de vidéo.');
+        return;
+      }
+      let videos = loadVideos();
+
+      if (videos.length >= maxVideos) {
+        alert(`Vous avez atteint le maximum de ${maxVideos} vidéos.`);
+        return;
+      }
+
+      if (videos.some(v => v.title.toLowerCase() === title.toLowerCase())) {
+        alert('Cette vidéo existe déjà.');
+        return;
+      }
+
+      const newVideo = {
+        title,
+        script: false,
+        shoot: false,
+        edit: false,
+        thumb: false,
+        posted: false
+      };
+
+      videos.push(newVideo);
+      saveVideos(videos);
+      input.value = '';
+      renderTable();
+    }
+
+    document.getElementById('addVideoBtn').addEventListener('click', addVideo);
+
+    document.getElementById('videoTitle').addEventListener('keypress', e => {
+      if (e.key === 'Enter') {
+        addVideo();
+      }
+    });
+
+    renderTable();
+  </script>
+
+ <footer>
+    © 2025 Creator Kit. Créé avec ❤️ pour les créateurs de contenu.
+  </footer>
+</body>
+</html>
