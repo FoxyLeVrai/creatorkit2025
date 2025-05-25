@@ -36,6 +36,17 @@
       animation: bounceIn 1s ease-out forwards;
     }
 
+    @keyframes bounceIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
     .button-container {
       display: flex;
       flex-direction: column;
@@ -130,16 +141,16 @@
   <h1 id="title">Creator Kit</h1>
 
   <div class="button-container">
-    <button id="btn1" onclick="openLocal('1.html')">
+    <button onclick="openPage('1.html')">
       <span>🖼️ Visualisation de miniature YouTube</span>
     </button>
-    <button id="btn2" onclick="openLocal('2.html')">
+    <button onclick="openPage('2.html')">
       <span>📊 Analyse</span>
     </button>
-    <button id="btn3" onclick="openLocal('3.html')">
+    <button onclick="openPage('3.html')">
       <span>✅ Checklist</span>
     </button>
-    <button id="btn4" onclick="openLocal('4.html')">
+    <button onclick="openPage('4.html')">
       <span>📝 To Do List</span>
     </button>
   </div>
@@ -149,8 +160,8 @@
   </footer>
 
   <script>
-    function openLocal(file) {
-      window.location.href = file;
+    function openPage(file) {
+      window.location.href = "./" + file;
     }
 
     setInterval(() => {
