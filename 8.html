@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard Créateur YouTube</title>
+  <style>
+    body {
+      background-color: #121212;
+      font-family: Arial, sans-serif;
+      color: white;
+      margin: 0; padding: 20px;
+      user-select: none;
+    }
+    h1 { text-align: center; margin-bottom: 20px; }
+    .container { max-width: 700px; margin: 0 auto; }
+    label {
+      display: block;
+      margin: 15px 0 5px;
+      font-weight: bold;
+    }
+    input[type="text"], textarea, select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      background-color: #2a2a2a;
+      color: white;
+      resize: vertical;
+      font-size: 14px;
+    }
+    textarea { min-height: 80px; }
+    input[type="file"] {
+      background-color: transparent;
+      color: white;
+    }
+    button {
+      margin-top: 15px;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #34a853;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+    button:hover { background-color: #2a7d3e; }
+    .top-bar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    select#videoSelect {
+      flex-grow: 1;
+      background-color: #2a2a2a;
+      color: white;
+      border-radius: 6px;
+    }
+    .slots {
+      margin-top: 20px;
+      background: #1e1e1e;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #00000088;
+      transition: all 0.4s ease;
+    }
+    .slot { margin-bottom: 20px; }
+    .thumbnail-preview {
+      margin-top: 10px;
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 8px;
+      object-fit: contain;
+      box-shadow: 0 0 10px #000000cc;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      color: #888;
+      font-size: 14px;
+    }
+    #deleteVideoBtn {
+      background-color: #e53e3e;
+    }
+    #deleteVideoBtn:hover {
+      background-color: #b82a27;
+    }
+  </style>
+</head>
+<body>
+  <h1>Dashboard Créateur YouTube</h1>
+  <div class="container">
+    <div class="top-bar">
+      <select id="videoSelect" aria-label="Sélectionner une vidéo"></select>
+      <button id="addVideoBtn" title="Ajouter une nouvelle vidéo">+ Ajouter</button>
+      <button id="deleteVideoBtn" title="Supprimer la vidéo sélectionnée">Supprimer</button>
+    </div>
+    <div class="slots" id="slotsContainer" aria-live="polite" aria-atomic="true"></div>
+  </div>
+  <div class="footer">© 2025 Creator Kit. Créé avec ❤️ pour les créateurs de contenu.</div>
+
+<script>
+  const STORAGE_KEY = "creatorKitVideos";
+
+  const defaultVideo = () => ({
+    id: crypto.randomUUID(),
+    title: "",
+    description: "",
+    script: "",
+    montage: "",
+    thumbnailDataUrl: null,
+  });
+
+  function loadVideos() {
+    const data = localStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data) : [defaultVideo()];
+  }
+
+  function saveVideos(videos) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(videos));
+  }
+
+  let videos = loadVideos();
+  let currentVideoId = videos[0]?.id || null;
+
+  const videoSelect = document.getElementById("videoSelect");
+  const slotsContainer = document.getElementById("slotsContainer");
+  const addVideoBtn = document.getElementById("addVideoBtn");
+  const deleteVideoBtn = document.getElementById("deleteVideoBtn");
+
+  function updateVideoSelect() {
+    videoSelect.innerHTML = "";
+    if (videos.length === 0) {
+      const option = document.createElement("option");
+      option.textContent = "Aucune vidéo disponible";
+      option.disabled = true;
+      videoSelect.appendChild(option);
+      videoSelect.disabled = true;
+      deleteVideoBtn.disabled = true;
+      return;
+    }
+
+    videoSelect.disabled = false;
+    deleteVideoBtn.disabled = false;
+
+    videos.forEach((vid, i) => {
+      const option = document.createElement("option");
+      option.value = vid.id;
+      option.textContent = vid.title ? vid.title.substring(0, 30) : `Vidéo ${i + 1}`;
+      if (vid.id === currentVideoId) option.selected = true;
+      videoSelect.appendChild(option);
+    });
+  }
+
+  function renderSlots() {
+    if (!currentVideoId) {
+      slotsContainer.innerHTML = "<p>Aucune vidéo disponible.</p>";
+      return;
+    }
+
+    const video = videos.find(v => v.id === currentVideoId);
+    if (!video) {
+      slotsContainer.innerHTML = "<p>Aucune vidéo disponible.</p>";
+      return;
+    }
+
+    slotsContainer.innerHTML = "";
+
+    const thumbSlot = document.createElement("div");
+    thumbSlot.className = "slot";
+    thumbSlot.innerHTML = `
+      <label for="thumbnailInput">Miniature (Image)</label>
+      <input type="file" id="thumbnailInput" accept="image/*" />
+      <div id="thumbPreviewContainer">
+        ${video.thumbnailDataUrl
+          ? `<img src="${video.thumbnailDataUrl}" alt="Miniature" class="thumbnail-preview" />`
+          : `<p style="color:#777;">Pas d’image chargée</p>`}
+      </div>
+    `;
+    slotsContainer.appendChild(thumbSlot);
+
+    const titleSlot = document.createElement("div");
+    titleSlot.className = "slot";
+    titleSlot.innerHTML = `
+      <label for="titleInput">Titre</label>
+      <input type="text" id="titleInput" value="${escapeHtml(video.title)}" />
+    `;
+    slotsContainer.appendChild(titleSlot);
+
+    const descSlot = document.createElement("div");
+    descSlot.className = "slot";
+    descSlot.innerHTML = `
+      <label for="descriptionInput">Description</label>
+      <textarea id="descriptionInput">${escapeHtml(video.description)}</textarea>
+    `;
+    slotsContainer.appendChild(descSlot);
+
+    const scriptSlot = document.createElement("div");
+    scriptSlot.className = "slot";
+    scriptSlot.innerHTML = `
+      <label for="scriptInput">Script / Plan</label>
+      <textarea id="scriptInput">${escapeHtml(video.script)}</textarea>
+    `;
+    slotsContainer.appendChild(scriptSlot);
+
+    const montageSlot = document.createElement("div");
+    montageSlot.className = "slot";
+    montageSlot.innerHTML = `
+      <label for="montageInput">Indications de montage</label>
+      <textarea id="montageInput">${escapeHtml(video.montage)}</textarea>
+    `;
+    slotsContainer.appendChild(montageSlot);
+
+    document.getElementById("thumbnailInput").addEventListener("change", onThumbnailChange);
+    document.getElementById("titleInput").addEventListener("input", onInputChange);
+    document.getElementById("descriptionInput").addEventListener("input", onInputChange);
+    document.getElementById("scriptInput").addEventListener("input", onInputChange);
+    document.getElementById("montageInput").addEventListener("input", onInputChange);
+  }
+
+  function escapeHtml(text) {
+    if (!text) return "";
+    return text.replace(/&/g, "&amp;")
+               .replace(/"/g, "&quot;")
+               .replace(/</g, "&lt;")
+               .replace(/>/g, "&gt;");
+  }
+
+  function onThumbnailChange(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const video = videos.find(v => v.id === currentVideoId);
+      if (!video) return;
+      video.thumbnailDataUrl = ev.target.result;
+      saveVideos(videos);
+      renderSlots();
+      updateVideoSelect();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function onInputChange(e) {
+    const video = videos.find(v => v.id === currentVideoId);
+    if (!video) return;
+    switch (e.target.id) {
+      case "titleInput": video.title = e.target.value; break;
+      case "descriptionInput": video.description = e.target.value; break;
+      case "scriptInput": video.script = e.target.value; break;
+      case "montageInput": video.montage = e.target.value; break;
+    }
+    saveVideos(videos);
+    updateVideoSelect();
+  }
+
+  addVideoBtn.addEventListener("click", () => {
+    const newVid = defaultVideo();
+    videos.push(newVid);
+    currentVideoId = newVid.id;
+    saveVideos(videos);
+    updateVideoSelect();
+    renderSlots();
+  });
+
+  deleteVideoBtn.addEventListener("click", () => {
+    if (!currentVideoId) return;
+
+    videos = videos.filter(v => v.id !== currentVideoId);
+
+    if (videos.length === 0) {
+      currentVideoId = null;
+      saveVideos(videos);
+      updateVideoSelect();
+      slotsContainer.innerHTML = "<p>Aucune vidéo disponible.</p>";
+      return;
+    }
+
+    currentVideoId = videos[0].id;
+    saveVideos(videos);
+    updateVideoSelect();
+    renderSlots();
+  });
+
+  videoSelect.addEventListener("change", (e) => {
+    currentVideoId = e.target.value;
+    renderSlots();
+  });
+
+  updateVideoSelect();
+  renderSlots();
+</script>
+</body>
+</html>
